@@ -1,5 +1,12 @@
-#!/usr/bin/env ruby
+#!/bin/bash
 
-require_relative 'xiami_cloner'
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-XiamiCloner.clone(File.expand_path('~/Dropbox/Synced/Playlist'), File.expand_path('~/Music/Xiami'), cloned_file: File.expand_path('~/Dropbox/Synced/Cloned'), import_to_itunes: false)
+source ~/.bash_profile
+ruby -E utf-8:utf-8 $DIR"/xm_clone.rb"
