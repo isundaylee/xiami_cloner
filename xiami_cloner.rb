@@ -55,13 +55,20 @@ class XiamiCloner
 
 	private
 		def self.check_song_integrity(song)
+			return true if File.exists?(cache_path("#{song}.complete"))
+
 			info = retrieve_info(song)
 			url = LocationDecoder.decode(info.search('location').text)
 
 			size = get_content_size(url)
 			download_to_cache(url, "#{song}.mp3", false)
 
-			File.size(cache_path("#{song}.mp3")) == size
+			if File.size(cache_path("#{song}.mp3")) == size
+				FileUtils.touch(cache_path("#{song}.complete"))
+				return true
+			else
+				return false
+			end
 		end
 
 		def self.retrieve_info(id)
