@@ -36,4 +36,4 @@ while true
 
 end
 
-`lock_release xiami_sync`
+`lock_release xiami_cloner`
