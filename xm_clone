@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require_relative 'xiami_cloner'
+
+XiamiCloner.clone(File.expand_path('~/Dropbox/Synced/Playlist'), File.expand_path('~/Music/Xiami'), cloned_file: File.expand_path('~/Dropbox/Synced/Cloned'), import_to_itunes: false)

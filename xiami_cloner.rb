@@ -7,6 +7,7 @@ class XiamiCloner
 	require 'fileutils'
 	require 'digest/md5'
 	require 'nokogiri'
+	require 'net/http'
 
 	INFO_URL = 'http://www.xiami.com/song/playlist/id/%d/object_name/default/object_id/0'
 	CACHE_DIR = '/tmp/xiami_cloner_cache'
@@ -29,16 +30,40 @@ class XiamiCloner
 				next
 			end
 
+			puts
+
 			self.clone_song(song, outdir, options)
 
 			cloneds << song
 			File.write(options[:cloned_file], cloneds.join("\n")) if options[:cloned_file]
+		end
+	end
 
-			puts
+	def self.check_integrity(playlist)
+		songs = strip_invalid(File.read(playlist).lines)
+
+		counter = 0
+
+		songs.each do |song|
+			counter += 1
+
+			puts "正在检查第 #{counter} / #{songs.size} 首歌曲的完整性"
+
+			puts "  歌曲 #{song} 没有下载完全" unless check_song_integrity(song)
 		end
 	end
 
 	private
+		def self.check_song_integrity(song)
+			info = retrieve_info(song)
+			url = LocationDecoder.decode(info.search('location').text)
+
+			size = get_content_size(url)
+			download_to_cache(url, "#{song}.mp3", false)
+
+			File.size(cache_path("#{song}.mp3")) == size
+		end
+
 		def self.retrieve_info(id)
 			info_url = INFO_URL % id
 
@@ -52,12 +77,18 @@ class XiamiCloner
 		end
 
 		def self.clone_song(song, outdir, options = {})
+			options[:import_to_itunes] ||= false
+
 			FileUtils.mkdir_p outdir
 
 			info = retrieve_info(song)
 			url = LocationDecoder.decode(info.search('location').text)
 
-			self.download_to_cache(url, "#{song}.mp3", false)
+			while true
+				break if check_song_integrity(song)
+				FileUtils.rm(self.cache_path("#{song}.mp3"))
+				self.download_to_cache(url, "#{song}.mp3", false)
+			end
 
 			out_path = File.join(outdir, filename(song))
 			out_path = uniquefy(out_path, ".mp3")
@@ -65,11 +96,19 @@ class XiamiCloner
 			FileUtils.cp(self.cache_path("#{song}.mp3"), out_path)
 
 			write_id3(song, out_path)
+
+			import_to_itunes(out_path) if options[:import_to_itunes]
 		end
 
 		def self.filename(song)
 			info = retrieve_info(song)
 			"#{info.search('artist').text} - #{info.search('title').text}"
+		end
+
+		def self.import_to_itunes(file)
+		    itd = File.expand_path("~/Music/iTunes/iTunes Media/Automatically Add to iTunes.localized") 
+
+		    FileUtils.cp(file, itd)
 		end
 
 		def self.uniquefy(filename, extname)
@@ -175,6 +214,12 @@ class XiamiCloner
 			end
 		end
 
-end
+		def self.get_content_size(url)
+			response = `curl -s -I \"#{url}\"`
 
-XiamiCloner.clone('Playlist', 'songs', cloned_file: 'Cloned')
+			regexp = /Content-Length: ([0-9]*)[^0-9]/
+
+			regexp.match(response)[1].to_i
+		end
+
+end
