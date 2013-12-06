@@ -46,7 +46,7 @@ class XiamiClonerMenubar
 
 		Thread.new do |t|
 			while true
-				logs_a = `tail -n 5 ~/Library/Logs/xiami_daemon.log`.split("\n").map { |x| x.split("\r").last }
+				logs_a = `tail -n 5 ~/Library/Logs/xiami_cloner.log`.split("\n").map { |x| x.split("\r").last }
 
 				0.upto(4) { |i| @log_menus[i].title = logs_a[i] }
 
@@ -56,8 +56,6 @@ class XiamiClonerMenubar
 					@status_item.setImage(NSImage.new.initWithContentsOfFile('icons/perok.png'))
 				elsif last == '开始同步'
 					@status_item.setImage(NSImage.new.initWithContentsOfFile('icons/per00.png'))
-				elsif /已将.*?/.match(last)
-					@status_item.setImage(NSImage.new.initWithContentsOfFile('icons/per10.png'))
 				elsif /正在下载.*?/.match(last)
 					@status_item.setImage(NSImage.new.initWithContentsOfFile('icons/per00.png'))
 				elsif /#*?\w*?([0-9]*\.[0-9]*)%/.match(last)
