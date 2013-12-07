@@ -73,10 +73,16 @@ class XiamiCloner
 
 		def self.retrieve_info(id)
 			info_url = INFO_URL % id
+			info_path = "#{id}.info"
 
-			self.download_to_cache(info_url, "#{id}.info")
+			if File.exists?(info_path) && (File.mtime(info_path) < (Time.now - 3600))
+				# Remove if cached more than an hour ago
+				FileUtils.rm(info_path)
+			end
 
-			Nokogiri::XML(File.read(self.cache_path("#{id}.info")))
+			self.download_to_cache(info_url, info_path)
+
+			Nokogiri::XML(File.read(self.cache_path(info_path)))
 		end
 
 		def self.strip_invalid(list)
