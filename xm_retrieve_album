@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require 'open-uri'
+require 'Nokogiri'
+
+id = ARGV[0]
+url = "http://www.xiami.com/album/#{id}"
+
+doc = Nokogiri::HTML(open(url).read)
+
+doc.css('.song_name').each do |song|
+	puts /\/song\/([0-9]*)/.match(song.css('a')[0]['href'])[1]
+end
