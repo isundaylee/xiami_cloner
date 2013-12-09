@@ -9,6 +9,7 @@ class XiamiCloner
 	require 'nokogiri'
 	require 'net/http'
 	require 'ruby-pinyin'
+	require 'image_science'
 
 	INFO_URL = 'http://www.xiami.com/song/playlist/id/%d/object_name/default/object_id/0'
 	ALBUM_PAGE_URL = 'http://www.xiami.com/album/%d'
@@ -311,8 +312,30 @@ class XiamiCloner
 			info = retrieve_info(song)
 
 			if info.search('pic') && !info.search('pic').text.strip.empty?
-				self.download_to_cache(info.search('pic').text, "#{song}.cover")
-				return File.open(self.cache_path("#{song}.cover"), 'rb').read
+				url = info.search('pic').text
+
+				re = /(\/[0-9]*)(_[0-9])(\.)/
+
+				if !re.match(url)
+					# Fallback low-res
+					self.download_to_cache(url, "#{song}.cover")
+					return File.open(self.cache_path("#{song}.cover"), 'rb').read
+					puts "  [信息] 使用低清版本专辑封面"
+				else
+					# Retrieve and crop the high-res version
+					new_url = url.gsub(re, '\1\3')
+
+					return File.open(self.cache_path("#{song}.cover_hq_c"), 'rb').read if File.exists?(self.cache_path("#{song}.cover_hq_c"))
+
+					self.download_to_cache(new_url, "#{song}.cover_hq")
+					ImageScience.with_image(cache_path("#{song}.cover_hq")) do |img|
+						img.cropped_thumbnail(500) do |thumb|
+							thumb.save cache_path("#{song}.cover_hq_c")
+						end
+					end
+
+					return File.open(self.cache_path("#{song}.cover_hq_c"), 'rb').read
+				end
 			else
 				return nil
 			end
