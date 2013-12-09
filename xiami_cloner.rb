@@ -193,7 +193,14 @@ class XiamiCloner
 		    	command = "curl --connect-timeout 15 --retry 999 --retry-max-time 0 -C - -# \"#{url}\" -o \"#{ccp}\""
 		    	command += " > /dev/null 2>&1" if hidden
 		    	system(command)
-		    	FileUtils.mv(ccp, cfp)
+
+		    	if !File.exists?(ccp)
+		    		# TODO FIXME
+		    		# If curl goes to 404 or other errors, create stub file
+		    		FileUtils.touch(cfp)
+		    	else
+			    	FileUtils.mv(ccp, cfp)
+			    end
 		    end
 		end
 
