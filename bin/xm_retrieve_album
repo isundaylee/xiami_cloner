@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 require 'open-uri'
-require 'Nokogiri'
+require 'nokogiri'
 
 id = ARGV[0]
 url = "http://www.xiami.com/album/#{id}"

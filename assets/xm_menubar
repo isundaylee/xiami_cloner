@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env macruby
 # encoding: utf-8
 
 framework "Cocoa"
@@ -25,12 +25,16 @@ class XiamiClonerMenubar
 	  menu
 	end
 
+	def icon_path(name)
+		File.join(File.expand_path(File.dirname(File.dirname(__FILE__))), 'assets', name)
+	end
+
 	# Init the status bar
 	def init_status_bar(menu)
 	  status_bar = NSStatusBar.systemStatusBar
 	  status_item = status_bar.statusItemWithLength(NSVariableStatusItemLength)
 	  status_item.setMenu menu 
-	  status_item.setImage(NSImage.new.initWithContentsOfFile('icons/perok.png'))
+	  status_item.setImage(NSImage.new.initWithContentsOfFile(icon_path('perok.png')))
 
 	  @status_item = status_item
 	end
@@ -53,17 +57,17 @@ class XiamiClonerMenubar
 				last = logs_a[4]
 
 				if last == '同步完成'
-					@status_item.setImage(NSImage.new.initWithContentsOfFile('icons/perok.png'))
+					@status_item.setImage(NSImage.new.initWithContentsOfFile(icon_path('icons/perok.png')))
 				elsif last == '开始同步'
-					@status_item.setImage(NSImage.new.initWithContentsOfFile('icons/per00.png'))
+					@status_item.setImage(NSImage.new.initWithContentsOfFile(icon_path('icons/per00.png')))
 				elsif /正在下载.*?/.match(last)
-					@status_item.setImage(NSImage.new.initWithContentsOfFile('icons/per00.png'))
+					@status_item.setImage(NSImage.new.initWithContentsOfFile(icon_path('icons/per00.png')))
 				elsif /#*?\w*?([0-9]*\.[0-9]*)%/.match(last)
 					progress = /#*?\w*?([0-9]*\.[0-9]*)%/.match(last)[1].to_f
 					i = (progress / 10).to_i
 					s = i.to_s
 					s = "0#{s}" if s.length == 1
-					@status_item.setImage(NSImage.new.initWithContentsOfFile("icons/per#{s}.png"))
+					@status_item.setImage(NSImage.new.initWithContentsOfFile(icon_path("icons/per#{s}.png")))
 				end
 
 				sleep 1
