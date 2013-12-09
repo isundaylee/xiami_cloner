@@ -1,0 +1,22 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    RubyInline (3.12.2)
+      ZenTest (~> 4.3)
+    ZenTest (4.9.5)
+    image_science (1.2.5)
+      RubyInline (~> 3.9)
+    mini_portile (0.5.2)
+    nokogiri (1.6.0)
+      mini_portile (~> 0.5.0)
+    ruby-pinyin (0.2.4)
+    taglib-ruby (0.6.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  image_science
+  nokogiri
+  ruby-pinyin
+  taglib-ruby
