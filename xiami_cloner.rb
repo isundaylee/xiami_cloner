@@ -190,7 +190,7 @@ class XiamiCloner
 
 		    if !File.exists?(cfp)
 		    	FileUtils.rm_rf(ccp)
-		    	command = "curl --retry 999 --retry-max-time 0 -C - -# \"#{url}\" -o \"#{ccp}\""
+		    	command = "curl --connect-timeout 15 --retry 999 --retry-max-time 0 -C - -# \"#{url}\" -o \"#{ccp}\""
 		    	command += " > /dev/null 2>&1" if hidden
 		    	system(command)
 		    	FileUtils.mv(ccp, cfp)
