@@ -8,8 +8,10 @@ class XiamiCloner
 	require 'digest/md5'
 	require 'nokogiri'
 	require 'net/http'
+	require 'ruby-pinyin'
 
 	INFO_URL = 'http://www.xiami.com/song/playlist/id/%d/object_name/default/object_id/0'
+	ALBUM_PAGE_URL = 'http://www.xiami.com/album/%d'
 	CACHE_DIR = '/tmp/xiami_cloner_cache'
 
 	def self.clone(playlist, outdir, options = {})
@@ -85,6 +87,47 @@ class XiamiCloner
 			Nokogiri::XML(File.read(self.cache_path(info_path)))
 		end
 
+		def self.retrieve_order(page, id)
+			node = page.at_css('#track .chapter')
+			
+			node.css('.track_list').each_with_index do |d, i|
+				disc = i + 1
+				d.css('tr td.song_name a').each_with_index do |s, i|
+					song = i + 1
+					return [disc.to_s, song.to_s] if s['href'].include?(id.to_s)
+				end
+			end
+
+			['', '']
+		end
+
+		def self.retrieve_publish_year(page)
+			node = page.at_css('#album_block table')
+
+			node.css('tr').each do |r|
+				ds = r.css('td')
+				if ds[0].text == '发行时间：'
+					match = /([0-9]*)年/.match(ds[1].text)
+					if match
+						return match[1]
+					else
+						return ''
+					end
+				end
+			end
+
+			''
+		end
+
+		def self.retrieve_album_page(id)
+			page_url = ALBUM_PAGE_URL % id
+			page_path = "album_#{id}.page"
+
+			self.download_to_cache(page_url, page_path)
+
+			Nokogiri::HTML(File.read(self.cache_path(page_path)))
+		end
+
 		def self.strip_invalid(list)
 			list.select { |x| x.to_i > 0 }.map { |x| x.strip }
 		end
@@ -153,6 +196,18 @@ class XiamiCloner
 		    end
 		end
 
+		def self.retrieve_album_artist(page)
+			page.css('table tr td a').each do |i|
+				return i.text if /\/artist\/([0-9]*)/.match(i['href'])
+			end
+		end
+
+		def self.get_text_frame(frame_id, text)
+			t = TagLib::ID3v2::TextIdentificationFrame.new(frame_id, TagLib::String::UTF8)
+			t.text = text
+			t
+		end
+
 		def self.write_id3(song, path)
 			require 'taglib'
 
@@ -161,13 +216,48 @@ class XiamiCloner
 			TagLib::MPEG::File.open(path) do |f|
 				tag = f.id3v2_tag
 
+				# Basic infos
 				tag.artist = info.search('artist').text
 				tag.album = info.search('album_name').text
 				tag.title = info.search('title').text
 				tag.genre = "Xiami"
 
-				lyrics = simplify_lyrics(retrieve_lyrics(song))
+				# Album artist
+				album_page = retrieve_album_page(info.search('album_id').text.to_i)
+				album_artist = retrieve_album_artist(album_page)
+				tag.remove_frames('TPE2')
+				tag.add_frame(get_text_frame('TPE2', album_artist))
 
+				# Sorting fields
+				tag.remove_frames('TSOT')
+				tag.add_frame(get_text_frame('TSOT', PinYin.sentence(tag.title)))
+
+				tag.remove_frames('TSOA')
+				tag.add_frame(get_text_frame('TSOA', PinYin.sentence(tag.album)))
+
+				tag.remove_frames('TSOP')
+				tag.add_frame(get_text_frame('TSOP', PinYin.sentence(tag.artist)))
+
+				tag.remove_frames('TSO2')
+				tag.add_frame(get_text_frame('TSO2', PinYin.sentence(album_artist)))
+
+				# Track order (returns strings that are empty if not retrieved successfully)
+				disc, track = retrieve_order(album_page, song)
+
+				tag.remove_frames('TRCK')
+				tag.add_frame(get_text_frame('TRCK', track))
+
+				tag.remove_frames('TPOS')
+				tag.add_frame(get_text_frame('TPOS', disc))
+
+				# Track year (returns string that is empty if not retrieved successfully)
+				year = retrieve_publish_year(album_page)
+
+				tag.remove_frames('TDRC')
+				tag.add_frame(get_text_frame('TDRC', year))
+
+				# Lyrics
+				lyrics = simplify_lyrics(retrieve_lyrics(song))
 				unless lyrics.strip.empty?
 					tag.remove_frames('USLT')
 					t = TagLib::ID3v2::UnsynchronizedLyricsFrame.new(TagLib::String::UTF8)
@@ -175,14 +265,15 @@ class XiamiCloner
 					tag.add_frame(t)
 				end
 
+				# Album cover
 				apic = TagLib::ID3v2::AttachedPictureFrame.new
 				apic.mime_type = 'image/png'
 				apic.description = 'Cover'
 				apic.type = TagLib::ID3v2::AttachedPictureFrame::FrontCover
 				apic.picture = retrieve_cover(song)
-
 				tag.add_frame(apic)
 
+				# Save
 				f.save
 			end
 		end
