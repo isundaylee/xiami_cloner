@@ -32,5 +32,18 @@ Main {
 		end
 	end
 
+	mode 'album' do
+		mode 'list' do
+			argument('album_id') {
+				cast :int
+				description 'The ID of the album to be listed. '
+			}
 
+			def run()
+				id = params['album_id'].value
+
+				XiamiCloner::Cloner.retrieve_album_list(id).each { |s| puts s }
+			end
+		end
+	end
 }

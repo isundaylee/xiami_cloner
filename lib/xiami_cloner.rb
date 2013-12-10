@@ -82,6 +82,18 @@ module XiamiCloner
 			end
 		end
 
+		def self.retrieve_album_list(id)
+			require 'open-uri'
+			
+			url = ALBUM_PAGE_URL % id
+
+			doc = Nokogiri::HTML(open(url).read)
+
+			doc.css('.song_name').map do |song|
+				/\/song\/([0-9]*)/.match(song.css('a')[0]['href'])[1]
+			end
+		end
+
 		private
 			def self.check_song_integrity(song)
 				return true if File.exists?(cache_path("#{song}.complete"))
