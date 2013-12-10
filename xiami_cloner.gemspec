@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "nokogiri"
   spec.add_dependency "ruby-pinyin"
+  spec.add_dependency "main"
 
   # brew install freeimage
   spec.add_dependency "image_science"
