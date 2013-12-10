@@ -45,5 +45,32 @@ Main {
 				XiamiCloner::Cloner.retrieve_album_list(id).each { |s| puts s }
 			end
 		end
+
+		mode 'download' do
+			argument('album_id') {
+				cast :int
+				description 'The ID of the album to be downloaded. '
+			}
+
+			option('output-dir', 'o') {
+				optional
+				argument_required
+				cast :string
+				description 'The output directory. Defaults to the current directory. '
+				default '.'
+			}
+
+			def run()
+				outdir = File.expand_path(params['output-dir'].value)
+				id = params['album_id'].value
+				options = {}
+
+				list = XiamiCloner::Cloner.retrieve_album_list(id)
+
+				list.each do |song|
+					XiamiCloner::Cloner.clone_song(song, outdir, options)
+				end
+			end
+		end
 	end
 }

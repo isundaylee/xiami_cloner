@@ -3,6 +3,7 @@ PATH
   specs:
     xiami_cloner (0.0.1)
       image_science
+      main
       nokogiri
       ruby-pinyin
       taglib-ruby
@@ -13,8 +14,17 @@ GEM
     RubyInline (3.12.2)
       ZenTest (~> 4.3)
     ZenTest (4.9.5)
+    arrayfields (4.9.0)
+    chronic (0.10.2)
+    fattr (2.2.1)
     image_science (1.2.5)
       RubyInline (~> 3.9)
+    main (5.2.0)
+      arrayfields (>= 4.7.4)
+      chronic (>= 0.6.2)
+      fattr (>= 2.2.0)
+      map (>= 5.1.0)
+    map (6.5.1)
     mini_portile (0.5.2)
     nokogiri (1.6.0)
       mini_portile (~> 0.5.0)
