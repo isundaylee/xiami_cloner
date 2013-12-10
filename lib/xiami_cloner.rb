@@ -44,6 +44,30 @@ module XiamiCloner
 			end
 		end
 
+		def self.clone_song(song, outdir, options = {})
+			options[:import_to_itunes] ||= false
+
+			FileUtils.mkdir_p outdir
+
+			info = retrieve_info(song)
+			url = LocationDecoder.decode(info.search('location').text)
+
+			while true
+				break if check_song_integrity(song)
+				FileUtils.rm(self.cache_path("#{song}.mp3"))
+				self.download_to_cache(url, "#{song}.mp3", false)
+			end
+
+			out_path = File.join(outdir, filename(song))
+			out_path = uniquefy(out_path, ".mp3")
+
+			FileUtils.cp(self.cache_path("#{song}.mp3"), out_path)
+
+			write_id3(song, out_path)
+
+			import_to_itunes(out_path) if options[:import_to_itunes]
+		end
+
 		def self.check_integrity(playlist)
 			songs = strip_invalid(File.read(playlist).lines)
 
@@ -135,30 +159,6 @@ module XiamiCloner
 				list.select { |x| x.to_i > 0 }.map { |x| x.strip }
 			end
 
-			def self.clone_song(song, outdir, options = {})
-				options[:import_to_itunes] ||= false
-
-				FileUtils.mkdir_p outdir
-
-				info = retrieve_info(song)
-				url = LocationDecoder.decode(info.search('location').text)
-
-				while true
-					break if check_song_integrity(song)
-					FileUtils.rm(self.cache_path("#{song}.mp3"))
-					self.download_to_cache(url, "#{song}.mp3", false)
-				end
-
-				out_path = File.join(outdir, filename(song))
-				out_path = uniquefy(out_path, ".mp3")
-
-				FileUtils.cp(self.cache_path("#{song}.mp3"), out_path)
-
-				write_id3(song, out_path)
-
-				import_to_itunes(out_path) if options[:import_to_itunes]
-			end
-
 			def self.filename(song)
 				info = retrieve_info(song)
 				"#{info.search('artist').text} - #{info.search('title').text}"
@@ -214,7 +214,7 @@ module XiamiCloner
 
 			def self.get_text_frame(frame_id, text)
 				t = TagLib::ID3v2::TextIdentificationFrame.new(frame_id, TagLib::String::UTF8)
-				t.text = text
+				t.text = text.to_s
 				t
 			end
 
