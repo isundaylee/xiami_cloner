@@ -92,4 +92,31 @@ Main {
 			end
 		end
 	end
+
+	mode 'sync' do 
+		argument('dir') {
+			cast :string
+			description 'The directory to be synced. '
+		}
+
+		option('import-to-itunes', 'i') {
+			optional
+			cast :bool
+			description 'If this option is used, downloaded songs would be automatically imported into iTunes. '
+			default false
+		}
+
+		def run()
+			dir = File.expand_path(params['dir'].value)
+			playlist_file = File.join(dir, '.playlist')
+			cloned_file = File.join(dir, '.cloned')
+
+			options = {
+				cloned_file: cloned_file, 
+				import_to_itunes: params['import-to-itunes'].value
+			}
+
+			XiamiCloner::Cloner.clone(playlist_file, dir, options)
+		end
+	end
 }
