@@ -49,8 +49,18 @@ module XiamiCloner
 
 			FileUtils.mkdir_p outdir
 
+			print "正在下载 "
+
 			info = retrieve_info(song)
+
+			artist = info.search('artist').text
+			title = info.search('title').text
+
+			print "#{artist} - #{title} "
+
 			url = LocationDecoder.decode(info.search('location').text)
+
+			puts
 
 			while true
 				break if check_song_integrity(song)
@@ -65,7 +75,10 @@ module XiamiCloner
 
 			write_id3(song, out_path)
 
-			import_to_itunes(out_path) if options[:import_to_itunes]
+			if options[:import_to_itunes]
+				import_to_itunes(out_path) 
+				puts "已将 #{artist} - #{title} 导入 iTunes"
+			end
 		end
 
 		def self.check_integrity(playlist)
