@@ -13,8 +13,9 @@ Main {
 				description 'The ID of the song to be downloaded. '
 			}
 
-			argument('dir') {
+			option('output-dir', 'o') {
 				optional
+				argument_required
 				cast :string
 				description 'The output directory. Defaults to the current directory. '
 				default '.'
@@ -22,7 +23,7 @@ Main {
 
 
 			def run()
-				outdir = File.expand_path(params['dir'].value)
+				outdir = File.expand_path(params['output-dir'].value)
 				id = params['id'].value
 				options = {}
 
@@ -30,4 +31,6 @@ Main {
 			end
 		end
 	end
+
+
 }
