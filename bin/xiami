@@ -21,11 +21,20 @@ Main {
 				default '.'
 			}
 
+			option('import-to-itunes', 'i') {
+				optional
+				cast :bool
+				description 'If this option is used, downloaded songs would be automatically imported into iTunes. '
+				default false
+			}
 
 			def run()
 				outdir = File.expand_path(params['output-dir'].value)
 				id = params['id'].value
-				options = {}
+
+				options = {
+					import_to_itunes: params['import-to-itunes'].value
+				}
 
 				XiamiCloner::Cloner.clone_song(id, outdir, options)
 			end
@@ -60,10 +69,20 @@ Main {
 				default '.'
 			}
 
+			option('import-to-itunes', 'i') {
+				optional
+				cast :bool
+				description 'If this option is used, downloaded songs would be automatically imported into iTunes. '
+				default false
+			}
+
 			def run()
 				outdir = File.expand_path(params['output-dir'].value)
 				id = params['album_id'].value
-				options = {}
+
+				options = {
+					import_to_itunes: params['import-to-itunes'].value
+				}
 
 				list = XiamiCloner::Cloner.retrieve_album_list(id)
 
