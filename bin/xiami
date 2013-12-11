@@ -42,6 +42,14 @@ Main {
 				default false
 			}
 
+			option('cookie', 'c') {
+				optional
+				argument_required
+				cast :string
+				description 'The CURL format cookie to be used when downloading HQ music. '
+				default ''
+			}
+
 			def run()
 				outdir = File.expand_path(params['output-dir'].value)
 				id = params['id'].value
@@ -49,7 +57,8 @@ Main {
 				options = {
 					import_to_itunes: params['import-to-itunes'].value, 
 					terse: params['terse'].value, 
-					high_quality_song: params['high-quality-song'].value
+					high_quality_song: params['high-quality-song'].value, 
+					cookie: params['cookie'].value.empty? ? nil : params['cookie'].value
 				}
 
 				XiamiCloner::Cloner.clone_song(id, outdir, options)
@@ -106,6 +115,14 @@ Main {
 				default false
 			}
 
+			option('cookie', 'c') {
+				optional
+				argument_required
+				cast :string
+				description 'The CURL format cookie to be used when downloading HQ music. '
+				default ''
+			}
+
 			def run()
 				outdir = File.expand_path(params['output-dir'].value)
 				id = params['album_id'].value
@@ -113,7 +130,8 @@ Main {
 				options = {
 					import_to_itunes: params['import-to-itunes'].value, 
 					terse: params['terse'].value, 
-					high_quality_song: params['high-quality-song'].value
+					high_quality_song: params['high-quality-song'].value, 
+					cookie: params['cookie'].value.empty? ? nil : params['cookie'].value
 				}
 
 				list = XiamiCloner::Cloner.retrieve_album_list(id)
@@ -152,6 +170,14 @@ Main {
 			default false
 		}
 
+		option('cookie', 'c') {
+			optional
+			argument_required
+			cast :string
+			description 'The CURL format cookie to be used when downloading HQ music. '
+			default ''
+		}
+
 		def run()
 			dir = File.expand_path(params['dir'].value)
 			playlist_file = File.join(dir, '.playlist')
@@ -161,10 +187,24 @@ Main {
 				cloned_file: cloned_file, 
 				import_to_itunes: params['import-to-itunes'].value, 
 				terse: params['terse'].value, 
-				high_quality_song: params['high-quality-song'].value
+				high_quality_song: params['high-quality-song'].value, 
+				cookie: params['cookie'].value.empty? ? nil : params['cookie'].value
 			}
 
 			XiamiCloner::Cloner.clone(playlist_file, dir, options)
+		end
+	end
+
+	mode 'decode' do
+		argument('location') {
+			cast :string
+			description 'The encrypted location. '
+		}
+
+		def run()
+			location = params['location'].value
+
+			puts XiamiCloner::LocationDecoder.decode(location)
 		end
 	end
 }

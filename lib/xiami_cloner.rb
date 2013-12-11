@@ -51,6 +51,7 @@ module XiamiCloner
 			options[:import_to_itunes] ||= false
 			terse = options[:terse]
 			hq = options[:high_quality_song]
+			cookie = options[:cookie]
 
 			FileUtils.mkdir_p outdir
 
@@ -63,11 +64,10 @@ module XiamiCloner
 
 			print "--- " if terse
 			print "#{artist} - #{title} "
-
-			url = retrieve_url(song, hq)
-			song_path = hq ? "#{song}.hq.mp3" : "#{song}.mp3"
-
 			puts
+
+			url = retrieve_url(song, hq, cookie)
+			song_path = hq ? "#{song}.hq.mp3" : "#{song}.mp3"
 
 			while true
 				break if check_song_integrity(song, hq)
@@ -115,13 +115,23 @@ module XiamiCloner
 		end
 
 		private
-			def self.retrieve_url(song, hq = false)
+
+			def self.retrieve_url(song, hq = false, cookie = nil)
 				if hq
-					download_to_cache(GET_HQ_URL % song, "#{song}.gethq")
+					download_to_cache(GET_HQ_URL % song, "#{song}.gethq", true, cookie)
 					json = JSON.parse(File.open(cache_path("#{song}.gethq")) { |f| f.read })
 
 					if json['status'].to_i == 1
-						return LocationDecoder.decode(json['location'])
+						url = LocationDecoder.decode(json['location'])
+						if url =~ /auth_key/
+							# It's the low quality version
+							# Nasty hack
+							# TODO FIXME
+							puts "  [信息] 高清地址获取失败，使用低音质版本"
+							return retrieve_url(song, false)
+						else
+							return url
+						end
 					else
 						puts "  [信息] 无高音质版本可用，使用低音质版本"
 						return retrieve_url(song, false)
@@ -149,6 +159,10 @@ module XiamiCloner
 				else
 					return false
 				end
+			end
+
+			def self.clear_cache(name)
+				FileUtils.rm_f(cache_path(name))
 			end
 
 			def self.retrieve_info(id)
@@ -233,8 +247,9 @@ module XiamiCloner
 				end
 			end
 
-			def self.download_to_cache(url, filename, hidden = true)
+			def self.download_to_cache(url, filename, hidden = true, cookie = nil)
 			    require 'fileutils'
+			    # hidden = false
 
 			    FileUtils.mkdir_p(File.expand_path(CACHE_DIR))
 
@@ -244,6 +259,8 @@ module XiamiCloner
 			    if !File.exists?(cfp)
 			    	FileUtils.rm_rf(ccp)
 			    	command = "curl --connect-timeout 15 --retry 999 --retry-max-time 0 -C - -# \"#{url}\" -o \"#{ccp}\""
+			    	# Changes User-Agent to avoid blocking HQ songs
+			    	command += " --cookie #{cookie}" if cookie
 			    	command += " > /dev/null 2>&1" if hidden
 			    	system(command)
 
