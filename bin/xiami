@@ -35,13 +35,21 @@ Main {
 				default false
 			}
 
+			option('high-quality-song', 'q') {
+				optional
+				cast :bool
+				description 'Download the high quality format. '
+				default false
+			}
+
 			def run()
 				outdir = File.expand_path(params['output-dir'].value)
 				id = params['id'].value
 
 				options = {
 					import_to_itunes: params['import-to-itunes'].value, 
-					terse: params['terse'].value
+					terse: params['terse'].value, 
+					high_quality_song: params['high-quality-song'].value
 				}
 
 				XiamiCloner::Cloner.clone_song(id, outdir, options)
@@ -91,13 +99,21 @@ Main {
 				default false
 			}
 
+			option('high-quality-song', 'q') {
+				optional
+				cast :bool
+				description 'Download the high quality format. '
+				default false
+			}
+
 			def run()
 				outdir = File.expand_path(params['output-dir'].value)
 				id = params['album_id'].value
 
 				options = {
 					import_to_itunes: params['import-to-itunes'].value, 
-					terse: params['terse'].value
+					terse: params['terse'].value, 
+					high_quality_song: params['high-quality-song'].value
 				}
 
 				list = XiamiCloner::Cloner.retrieve_album_list(id)
@@ -129,6 +145,13 @@ Main {
 			default false
 		}
 
+		option('high-quality-song', 'q') {
+			optional
+			cast :bool
+			description 'Download the high quality format. '
+			default false
+		}
+
 		def run()
 			dir = File.expand_path(params['dir'].value)
 			playlist_file = File.join(dir, '.playlist')
@@ -137,7 +160,8 @@ Main {
 			options = {
 				cloned_file: cloned_file, 
 				import_to_itunes: params['import-to-itunes'].value, 
-				terse: params['terse'].value
+				terse: params['terse'].value, 
+				high_quality_song: params['high-quality-song'].value
 			}
 
 			XiamiCloner::Cloner.clone(playlist_file, dir, options)

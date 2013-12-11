@@ -12,9 +12,11 @@ module XiamiCloner
 		require 'net/http'
 		require 'ruby-pinyin'
 		require 'image_science'
+		require 'json'
 
 		INFO_URL = 'http://www.xiami.com/song/playlist/id/%d/object_name/default/object_id/0'
 		ALBUM_PAGE_URL = 'http://www.xiami.com/album/%d'
+		GET_HQ_URL = 'http://www.xiami.com/song/gethqsong/sid/%d'
 		CACHE_DIR = '~/Library/Caches/xiami_cloner'
 
 		def self.clone(playlist, outdir, options = {})
@@ -48,6 +50,7 @@ module XiamiCloner
 		def self.clone_song(song, outdir, options = {})
 			options[:import_to_itunes] ||= false
 			terse = options[:terse]
+			hq = options[:high_quality_song]
 
 			FileUtils.mkdir_p outdir
 
@@ -61,20 +64,21 @@ module XiamiCloner
 			print "--- " if terse
 			print "#{artist} - #{title} "
 
-			url = LocationDecoder.decode(info.search('location').text)
+			url = retrieve_url(song, hq)
+			song_path = hq ? "#{song}.hq.mp3" : "#{song}.mp3"
 
 			puts
 
 			while true
-				break if check_song_integrity(song)
-				FileUtils.rm(self.cache_path("#{song}.mp3"))
-				self.download_to_cache(url, "#{song}.mp3", false)
+				break if check_song_integrity(song, hq)
+				FileUtils.rm(self.cache_path(song_path))
+				self.download_to_cache(url, song_path, false)
 			end
 
 			out_path = File.join(outdir, filename(song))
 			out_path = uniquefy(out_path, ".mp3")
 
-			FileUtils.cp(self.cache_path("#{song}.mp3"), out_path)
+			FileUtils.cp(self.cache_path(song_path), out_path)
 
 			write_id3(song, out_path)
 
@@ -111,17 +115,36 @@ module XiamiCloner
 		end
 
 		private
-			def self.check_song_integrity(song)
-				return true if File.exists?(cache_path("#{song}.complete"))
+			def self.retrieve_url(song, hq = false)
+				if hq
+					download_to_cache(GET_HQ_URL % song, "#{song}.gethq")
+					json = JSON.parse(File.open(cache_path("#{song}.gethq")) { |f| f.read })
 
-				info = retrieve_info(song)
-				url = LocationDecoder.decode(info.search('location').text)
+					if json['status'].to_i == 1
+						return LocationDecoder.decode(json['location'])
+					else
+						puts "  [信息] 无高音质版本可用，使用低音质版本"
+						return retrieve_url(song, false)
+					end
+				else
+					info = retrieve_info(song)
+					return LocationDecoder.decode(info.search('location').text)
+				end
+			end
+
+			def self.check_song_integrity(song, hq = false)
+				path = hq ? "#{song}.hq.complete" : "#{song}.complete"
+
+				return true if File.exists?(path)
+
+				url = retrieve_url(song, hq)
+				song_path = hq ? "#{song}.hq.mp3" : "#{song}.mp3"
 
 				size = get_content_size(url)
-				download_to_cache(url, "#{song}.mp3", false)
+				download_to_cache(url, song_path, false)
 
-				if File.size(cache_path("#{song}.mp3")) == size
-					FileUtils.touch(cache_path("#{song}.complete"))
+				if File.size(cache_path(song_path)) == size
+					FileUtils.touch(cache_path(path))
 					return true
 				else
 					return false
