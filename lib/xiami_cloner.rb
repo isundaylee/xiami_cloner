@@ -15,7 +15,7 @@ module XiamiCloner
 
 		INFO_URL = 'http://www.xiami.com/song/playlist/id/%d/object_name/default/object_id/0'
 		ALBUM_PAGE_URL = 'http://www.xiami.com/album/%d'
-		CACHE_DIR = '/tmp/xiami_cloner_cache'
+		CACHE_DIR = '~/Library/Caches/xiami_cloner'
 
 		def self.clone(playlist, outdir, options = {})
 			cloneds = options[:cloned_file] && File.exists?(options[:cloned_file])?
@@ -317,7 +317,7 @@ module XiamiCloner
 			end
 
 			def self.cache_path(filename)
-				File.join(CACHE_DIR, filename)
+				File.expand_path(File.join(CACHE_DIR, filename))
 			end
 
 			def self.simplify_lyrics(l)
