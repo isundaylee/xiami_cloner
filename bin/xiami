@@ -28,12 +28,20 @@ Main {
 				default false
 			}
 
+			option('terse', 't') {
+				optional
+				cast :bool
+				description 'To output the progress in a terse form for easier parsing. '
+				default false
+			}
+
 			def run()
 				outdir = File.expand_path(params['output-dir'].value)
 				id = params['id'].value
 
 				options = {
-					import_to_itunes: params['import-to-itunes'].value
+					import_to_itunes: params['import-to-itunes'].value, 
+					terse: params['terse'].value
 				}
 
 				XiamiCloner::Cloner.clone_song(id, outdir, options)
@@ -76,12 +84,20 @@ Main {
 				default false
 			}
 
+			option('terse', 't') {
+				optional
+				cast :bool
+				description 'To output the progress in a terse form for easier parsing. '
+				default false
+			}
+
 			def run()
 				outdir = File.expand_path(params['output-dir'].value)
 				id = params['album_id'].value
 
 				options = {
-					import_to_itunes: params['import-to-itunes'].value
+					import_to_itunes: params['import-to-itunes'].value, 
+					terse: params['terse'].value
 				}
 
 				list = XiamiCloner::Cloner.retrieve_album_list(id)
@@ -106,6 +122,13 @@ Main {
 			default false
 		}
 
+		option('terse', 't') {
+			optional
+			cast :bool
+			description 'To output the progress in a terse form for easier parsing. '
+			default false
+		}
+
 		def run()
 			dir = File.expand_path(params['dir'].value)
 			playlist_file = File.join(dir, '.playlist')
@@ -113,7 +136,8 @@ Main {
 
 			options = {
 				cloned_file: cloned_file, 
-				import_to_itunes: params['import-to-itunes'].value
+				import_to_itunes: params['import-to-itunes'].value, 
+				terse: params['terse'].value
 			}
 
 			XiamiCloner::Cloner.clone(playlist_file, dir, options)

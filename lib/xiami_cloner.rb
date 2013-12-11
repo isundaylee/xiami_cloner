@@ -22,16 +22,17 @@ module XiamiCloner
 				strip_invalid(File.read(options[:cloned_file]).lines) :
 				[]
 			songs = strip_invalid(File.read(playlist).lines)
+			terse = options[:terse]
 
 			counter = 0
 
 			songs.each do |song|
 				counter += 1
 
-				print "正在下载第 #{counter} / #{songs.size} 首歌曲"
+				print "正在下载第 #{counter} / #{songs.size} 首歌曲" unless terse
 
 				if cloneds.include?(song)
-					puts " ... 跳过"
+					puts " ... 跳过" unless terse
 					next
 				end
 
@@ -46,16 +47,18 @@ module XiamiCloner
 
 		def self.clone_song(song, outdir, options = {})
 			options[:import_to_itunes] ||= false
+			terse = options[:terse]
 
 			FileUtils.mkdir_p outdir
 
-			print "正在下载 "
+			print "正在下载 " unless terse
 
 			info = retrieve_info(song)
 
 			artist = info.search('artist').text
 			title = info.search('title').text
 
+			print "--- " if terse
 			print "#{artist} - #{title} "
 
 			url = LocationDecoder.decode(info.search('location').text)
@@ -77,7 +80,7 @@ module XiamiCloner
 
 			if options[:import_to_itunes]
 				import_to_itunes(out_path) 
-				puts "已将 #{artist} - #{title} 导入 iTunes"
+				puts "已将 #{artist} - #{title} 导入 iTunes" unless terse
 			end
 		end
 
