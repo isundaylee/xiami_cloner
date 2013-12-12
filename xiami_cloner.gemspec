@@ -25,6 +25,9 @@ Gem::Specification.new do |spec|
   spec.add_dependency "ruby-pinyin"
   spec.add_dependency "main"
 
+  # lock down ZenTest version to avoid illformed requirement issue
+  spec.add_dependency "ZenTest", "4.8.3"
+
   # brew install freeimage
   spec.add_dependency "image_science"
 
