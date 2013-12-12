@@ -7,7 +7,7 @@
 
      <key>ProgramArguments</key>
      <array>
-          <string>/usr/local/bin/xm_clone</string>
+          <string>/Users/Sunday/Programming/Git/sunutils/xm_clone_script</string>
      </array>
 
      <key>WatchPaths</key>
