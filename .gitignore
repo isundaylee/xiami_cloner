@@ -2,3 +2,5 @@ Cloned
 Playlist
 .DS_Store
 pkg
+vendor
+.bundle
