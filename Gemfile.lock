@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    xiami_cloner (0.0.1)
-      ZenTest (= 4.8.3)
+    xiami_cloner (0.0.2)
+      ZenTest
       image_science
       main
       nokogiri
@@ -14,7 +14,7 @@ GEM
   specs:
     RubyInline (3.12.2)
       ZenTest (~> 4.3)
-    ZenTest (4.8.3)
+    ZenTest (4.9.5)
     arrayfields (4.9.0)
     chronic (0.10.2)
     fattr (2.2.1)
