@@ -67,6 +67,12 @@ module XiamiCloner
 			puts
 
 			url = retrieve_url(song, hq, cookie)
+
+			if !url
+				puts '  [信息] 无法下载歌曲'
+				return
+			end
+
 			song_path = hq ? "#{song}.hq.mp3" : "#{song}.mp3"
 
 			while true
@@ -83,7 +89,7 @@ module XiamiCloner
 			write_id3(song, out_path)
 
 			if options[:import_to_itunes]
-				import_to_itunes(out_path) 
+				import_to_itunes(out_path)
 				puts "已将 #{artist} - #{title} 导入 iTunes" unless terse
 			end
 		end
@@ -104,7 +110,7 @@ module XiamiCloner
 
 		def self.retrieve_album_list(id)
 			require 'open-uri'
-			
+
 			url = ALBUM_PAGE_URL % id
 
 			doc = Nokogiri::HTML(open(url).read)
@@ -122,6 +128,7 @@ module XiamiCloner
 					json = JSON.parse(File.open(cache_path("#{song}.gethq")) { |f| f.read })
 
 					if json['status'].to_i == 1
+						return nil if (!json['location'] || json['location'].empty?)
 						url = LocationDecoder.decode(json['location'])
 						if url =~ /auth_key/
 							# It's the low quality version
@@ -138,6 +145,7 @@ module XiamiCloner
 					end
 				else
 					info = retrieve_info(song)
+					return nil if (!info.search('location').text || info.search('location').text.empty?)
 					return LocationDecoder.decode(info.search('location').text)
 				end
 			end
@@ -181,7 +189,7 @@ module XiamiCloner
 
 			def self.retrieve_order(page, id)
 				node = page.at_css('#track .chapter')
-				
+
 				node.css('.track_list').each_with_index do |d, i|
 					disc = i + 1
 					d.css('tr td.song_name a').each_with_index do |s, i|
@@ -230,7 +238,7 @@ module XiamiCloner
 			end
 
 			def self.import_to_itunes(file)
-			    itd = File.expand_path("~/Music/iTunes/iTunes Media/Automatically Add to iTunes.localized") 
+			    itd = File.expand_path("~/Music/iTunes/iTunes Media/Automatically Add to iTunes.localized")
 
 			    FileUtils.cp(file, itd)
 			end
@@ -370,7 +378,7 @@ module XiamiCloner
 				        nls += [ll.strip]
 			    	end
 			    end
-			    
+
 			    nls.join("\n")
 			end
 
