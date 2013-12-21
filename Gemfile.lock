@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    xiami_cloner (0.0.2)
+    xiami_cloner (0.0.3)
       ZenTest
       image_science
       main
