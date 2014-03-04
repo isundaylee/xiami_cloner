@@ -234,7 +234,7 @@ module XiamiCloner
 
 			def self.filename(song)
 				info = retrieve_info(song)
-				"#{info.search('artist').text} - #{info.search('title').text}"
+				"#{info.search('artist').text} - #{info.search('title').text}".tr("/\000", "")
 			end
 
 			def self.import_to_itunes(file)
