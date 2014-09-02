@@ -4,10 +4,14 @@
 require 'open-uri'
 require 'nokogiri'
 
+OPEN_URI_HTTP_OPTIONS = {
+  "Client-IP" => "220.181.111.109"
+}
+
 id = ARGV[0]
 url = "http://www.xiami.com/album/#{id}"
 
-doc = Nokogiri::HTML(open(url).read)
+doc = Nokogiri::HTML(open(url, OPEN_URI_HTTP_OPTIONS).read)
 
 doc.css('.song_name').each do |song|
 	puts /\/song\/([0-9]*)/.match(song.css('a')[0]['href'])[1]

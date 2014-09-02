@@ -19,6 +19,10 @@ module XiamiCloner
 		GET_HQ_URL = 'http://www.xiami.com/song/gethqsong/sid/%d'
 		CACHE_DIR = '~/Library/Caches/xiami_cloner'
 
+		OPEN_URI_HTTP_OPTIONS = {
+			"Client-IP" => "220.181.111.109"
+		}
+
 		def self.clone(playlist, outdir, options = {})
 			cloneds = options[:cloned_file] && File.exists?(options[:cloned_file])?
 				strip_invalid(File.read(options[:cloned_file]).lines) :
@@ -113,7 +117,8 @@ module XiamiCloner
 
 			url = ALBUM_PAGE_URL % id
 
-			doc = Nokogiri::HTML(open(url).read)
+			puts 'asdasdas'
+			doc = Nokogiri::HTML(open(url, OPEN_URI_HTTP_OPTIONS).read)
 
 			doc.css('.song_name').map do |song|
 				/\/song\/([0-9]*)/.match(song.css('a')[0]['href'])[1]
@@ -266,7 +271,7 @@ module XiamiCloner
 
 			    if !File.exists?(cfp)
 			    	FileUtils.rm_rf(ccp)
-			    	command = "curl --connect-timeout 15 --retry 999 --retry-max-time 0 -C - -# \"#{url}\" -o \"#{ccp}\""
+			    	command = "curl --connect-timeout 15 --retry 999 --retry-max-time 0 -H \"Client-IP: 220.181.111.109\" -C - -# \"#{url}\" -o \"#{ccp}\""
 			    	# Changes User-Agent to avoid blocking HQ songs
 			    	command += " --cookie #{cookie}" if cookie
 			    	command += " > /dev/null 2>&1" if hidden
