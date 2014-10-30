@@ -299,6 +299,19 @@ module XiamiCloner
 				t
 			end
 
+			def self.decode_select_html_entities(str)
+				list = {
+					'&amp;' => '&',
+					'&quot;' => '"'
+				}
+
+				list.each do |k, v|
+					str.gsub!(k, v)
+				end
+
+				str
+			end
+
 			def self.write_id3(song, path)
 				require 'taglib'
 
@@ -308,9 +321,9 @@ module XiamiCloner
 					tag = f.id3v2_tag
 
 					# Basic infos
-					tag.artist = info.search('artist').text
-					tag.album = info.search('album_name').text
-					tag.title = info.search('title').text
+					tag.artist = decode_select_html_entities(info.search('artist').text)
+					tag.album = decode_select_html_entities(info.search('album_name').text)
+					tag.title = decode_select_html_entities(info.search('title').text)
 					tag.genre = "Xiami"
 
 					# Album artist
