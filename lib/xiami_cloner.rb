@@ -18,6 +18,7 @@ module XiamiCloner
 		ALBUM_PAGE_URL = 'http://www.xiami.com/album/%d'
 		GET_HQ_URL = 'http://www.xiami.com/song/gethqsong/sid/%d'
 		CACHE_DIR = '~/Library/Caches/xiami_cloner'
+		PROXY_SERVER = 'http://sundaysimpleproxy.sinaapp.com/?url=%s'
 
 		OPEN_URI_HTTP_OPTIONS = {
 			"Client-IP" => "220.181.111.109"
@@ -262,7 +263,10 @@ module XiamiCloner
 
 			def self.download_to_cache(url, filename, hidden = true, cookie = nil)
 			    require 'fileutils'
+			    require 'cgi'
 			    # hidden = false
+
+			    url = PROXY_SERVER % (CGI.escape(url))
 
 			    FileUtils.mkdir_p(File.expand_path(CACHE_DIR))
 
