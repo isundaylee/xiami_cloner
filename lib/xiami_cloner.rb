@@ -306,7 +306,8 @@ module XiamiCloner
 			def self.decode_select_html_entities(str)
 				list = {
 					'&amp;' => '&',
-					'&quot;' => '"'
+					'&quot;' => '"',
+					'&#039;' => '\''
 				}
 
 				list.each do |k, v|
