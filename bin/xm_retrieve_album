@@ -3,16 +3,20 @@
 
 require 'open-uri'
 require 'nokogiri'
+require 'cgi'
 
 OPEN_URI_HTTP_OPTIONS = {
   "Client-IP" => "220.181.111.109"
 }
 
+PROXY_SERVER = 'http://sundaysimpleproxy.sinaapp.com/?url=%s'
+
 id = ARGV[0]
 url = "http://www.xiami.com/album/#{id}"
+url = PROXY_SERVER % (CGI.escape(url))
 
 doc = Nokogiri::HTML(open(url, OPEN_URI_HTTP_OPTIONS).read)
 
 doc.css('.song_name').each do |song|
-	puts /\/song\/([0-9]*)/.match(song.css('a')[0]['href'])[1]
+	puts(/\/song\/([0-9]*)/.match(song.css('a')[0]['href'])[1])
 end
