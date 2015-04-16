@@ -20,6 +20,9 @@ module XiamiCloner
 		CACHE_DIR = '~/Library/Caches/xiami_cloner'
 		PROXY_SERVER = 'http://sundaysimpleproxy.sinaapp.com/?url=%s'
 
+		HTTP_PROXY_SERVER = '123.57.248.146'
+		HTTP_PROXY_PORT = 3128
+
 		OPEN_URI_HTTP_OPTIONS = {
 			"Client-IP" => "220.181.111.109"
 		}
@@ -118,8 +121,7 @@ module XiamiCloner
 
 			url = ALBUM_PAGE_URL % id
 
-			puts 'asdasdas'
-			doc = Nokogiri::HTML(open(url, OPEN_URI_HTTP_OPTIONS).read)
+			doc = Nokogiri::HTML(open(url, proxy: "http://#{HTTP_PROXY_SERVER}:#{HTTP_PROXY_PORT}/").read)
 
 			doc.css('.song_name').map do |song|
 				/\/song\/([0-9]*)/.match(song.css('a')[0]['href'])[1]
@@ -264,9 +266,6 @@ module XiamiCloner
 			def self.download_to_cache(url, filename, hidden = true, cookie = nil)
 			    require 'fileutils'
 			    require 'cgi'
-			    # hidden = false
-
-			    url = PROXY_SERVER % (CGI.escape(url))
 
 			    FileUtils.mkdir_p(File.expand_path(CACHE_DIR))
 
@@ -275,10 +274,11 @@ module XiamiCloner
 
 			    if !File.exists?(cfp)
 			    	FileUtils.rm_rf(ccp)
-			    	command = "curl --connect-timeout 15 --retry 999 --retry-max-time 0 -H \"Client-IP: 220.181.111.109\" -C - -# \"#{url}\" -o \"#{ccp}\""
+			    	command = "curl -x #{HTTP_PROXY_SERVER}:#{HTTP_PROXY_PORT} --connect-timeout 15 --retry 999 --retry-max-time 0 -H \"Client-IP: 220.181.111.109\" -C - -# \"#{url}\" -o \"#{ccp}\""
 			    	# Changes User-Agent to avoid blocking HQ songs
 			    	command += " --cookie #{cookie}" if cookie
 			    	command += " > /dev/null 2>&1" if hidden
+
 			    	system(command)
 
 			    	if !File.exists?(ccp)
